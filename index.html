@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点菜助手 - 使用Supabase</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #ff7e67;
+            --secondary: #56cc9d;
+            --accent: #6cc3d5;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            padding-bottom: 70px;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 0 15px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 60px;
+            z-index: 99;
+        }
+        
+        .nav-tab {
+            padding: 12px 0;
+            width: 20%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .nav-tab i {
+            display: block;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .section {
+            display: none;
+            padding: 20px 0;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--light-gray);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-body {
+            padding: 15px;
+        }
+        
+        .dish-item {
+            display: flex;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--light-gray);
+            align-items: center;
+        }
+        
+        .dish-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dish-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-right: 15px;
+            background-color: var(--light-gray);
+        }
+        
+        .dish-info {
+            flex: 1;
+        }
+        
+        .dish-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .dish-category {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+        
+        .dish-rating {
+            color: #ffc107;
+        }
+        
+        .dish-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-light {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--light);
+            color: var(--dark);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-icon.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 5px;
+            font-size: 1rem;
+            background-color: white;
+        }
+        
+        .stars {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .star {
+            color: #ddd;
+            cursor: pointer;
+        }
+        
+        .star.active {
+            color: #ffc107;
+        }
+        
+        .menu-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        .menu-item {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .menu-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        
+        .random-result {
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        .random-dish {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .random-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+            z-index: 90;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            padding: 15px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 15px;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-left-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+        
+        .alert {
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .alert-error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+        
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+        
+        .alert-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: inherit;
+        }
+        
+        .load-more {
+            text-align: center;
+            padding: 15px;
+            color: var(--gray);
+        }
+        
+        .load-more-btn {
+            background-color: var(--light);
+            border: 1px solid var(--light-gray);
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .load-more-btn:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .scroll-container {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 576px) {
+            .nav-tab span {
+                display: none;
+            }
+            
+            .nav-tab i {
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>点菜助手 - Supabase版</h1>
+            <p>解决"不知道吃什么"的困扰</p>
+        </div>
+    </header>
+    
+    <div id="alert-container" style="position: fixed; top: 80px; left: 0; right: 0; z-index: 1000; padding: 0 15px;"></div>
+    
+    <div class="nav-tabs">
+        <div class="nav-tab active" data-target="menu-section">
+            <i class="fas fa-utensils"></i>
+            <span>今日菜单</span>
+        </div>
+        <div class="nav-tab" data-target="dishes-section">
+            <i class="fas fa-list"></i>
+            <span>菜品列表</span>
+        </div>
+        <div class="nav-tab" data-target="random-section">
+            <i class="fas fa-random"></i>
+            <span>随机选择</span>
+        </div>
+        <div class="nav-tab" data-target="favorites-section">
+            <i class="fas fa-heart"></i>
+            <span>收藏</span>
+        </div>
+        <div class="nav-tab" data-target="history-section">
+            <i class="fas fa-history"></i>
+            <span>历史</span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 今日菜单部分 -->
+        <div id="menu-section" class="section active">
+            <div class="card">
+                <div class="card-header">
+                    <span>今日菜单</span>
+                    <button class="btn btn-primary btn-sm" id="save-menu-btn">保存菜单</button>
+                </div>
+                <div class="card-body">
+                    <div id="menu-list" class="menu-list">
+                        <!-- 菜单项将通过JS动态添加 -->
+                    </div>
+                    <div id="empty-menu" class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>今日菜单为空</p>
+                        <p>请从菜品列表中添加或使用随机选择功能</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 菜品列表部分 -->
+        <div id="dishes-section" class="section">
+            <div class="filter-bar">
+                <select id="category-filter" class="form-select filter-select">
+                    <option value="all">全部分类</option>
+                    <!-- 分类选项将通过JS动态添加 -->
+                </select>
+                <button class="btn btn-light" id="add-category-btn">管理分类</button>
+            </div>
+            
+            <div class="scroll-container" id="dishes-scroll-container">
+                <div id="dishes-list">
+                    <!-- 菜品将通过JS动态添加 -->
+                </div>
+                <div id="dishes-load-more" class="load-more" style="display: none;">
+                    <button class="load-more-btn" id="load-more-dishes">加载更多</button>
+                </div>
+                <div id="dishes-all-loaded" class="load-more" style="display: none;">
+                    <p>已加载全部菜品</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 随机选择部分 -->
+        <div id="random-section" class="section">
+            <div class="card">
+                <div class="card-header">随机选择菜品</div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">选择分类</label>
+                        <select id="random-category" class="form-select">
+                            <option value="all">全部菜品</option>
+                            <!-- 分类选项将通过JS动态添加 -->
+                        </select>
+                    </div>
+                    <button id="random-btn" class="btn btn-primary" style="width: 100%">随机选择</button>
+                    
+                    <div id="random-result" class="random-result" style="display: none;">
+                        <div class="random-dish">红烧肉</div>
+                        <div class="random-actions">
+                            <button class="btn btn-secondary" id="add-to-menu-random">加入菜单</button>
+                            <button class="btn btn-light" id="random-again">再选一次</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 收藏部分 -->
+        <div id="favorites-section" class="section">
+            <div class="scroll-container" id="favorites-scroll-container">
+                <div id="favorites-list">
+                    <!-- 收藏的菜品将通过JS动态添加 -->
+                </div>
+                <div id="favorites-load-more" class="load-more" style="display: none;">
+                    <button class="load-more-btn" id="load-more-favorites">加载更多</button>
+                </div>
+                <div id="favorites-all-loaded" class="load-more" style="display: none;">
+                    <p>已加载全部收藏菜品</p>
+                </div>
+            </div>
+            <div id="empty-favorites" class="empty-state">
+                <i class="fas fa-heart"></i>
+                <p>暂无收藏菜品</p>
+                <p>在菜品列表中点击心形图标收藏菜品</p>
+            </div>
+        </div>
+        
+        <!-- 历史记录部分 -->
+        <div id="history-section" class="section">
+            <div id="history-list">
+                <!-- 历史记录将通过JS动态添加 -->
+            </div>
+            <div id="empty-history" class="empty-state">
+                <i class="fas fa-history"></i>
+                <p>暂无历史记录</p>
+                <p>保存菜单后会在这里显示历史记录</p>
+            </div>
+        </div>
+    </div>
+    
+    <button class="floating-btn" id="add-dish-btn">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <!-- 添加/编辑菜品的模态框 -->
+    <div id="dish-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">添加菜品</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dish-form">
+                    <input type="hidden" id="dish-id">
+                    <div class="form-group">
+                        <label for="dish-name" class="form-label">菜品名称</label>
+                        <input type="text" id="dish-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dish-image" class="form-label">图片URL</label>
+                        <input type="text" id="dish-image" class="form-control" placeholder="可选">
+                    </div>
+                    <div class="form-group">
+                        <label for="dish-category" class="form-label">分类</label>
+                        <select id="dish-category" class="form-select" required>
+                            <!-- 分类选项将通过JS动态添加 -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">推荐指数</label>
+                        <div class="stars" id="dish-rating">
+                            <span class="star" data-value="1">★</span>
+                            <span class="star" data-value="2">★</span>
+                            <span class="star" data-value="3">★</span>
+                            <span class="star" data-value="4">★</span>
+                            <span class="star" data-value="5">★</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="dish-steps" class="form-label">制作步骤</label>
+                        <textarea id="dish-steps" class="form-control" rows="3" placeholder="可选"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="modal-cancel">取消</button>
+                <button class="btn btn-primary" id="modal-save">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 管理分类的模态框 -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">管理分类</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="new-category" class="form-label">添加新分类</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="new-category" class="form-control">
+                        <button class="btn btn-primary" id="add-category">添加</button>
+                    </div>
+                </div>
+                <div id="categories-list">
+                    <!-- 分类列表将通过JS动态添加 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="category-modal-close">完成</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase初始化 - 请替换为您的实际URL和密钥
+        const supabaseUrl = 'https://your-project.supabase.co';
+        const supabaseKey = 'your-anon-key';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // 全局数据
+        let dishes = [];
+        let categories = [];
+        let menuHistory = [];
+        
+        // 分页相关变量
+        let dishesPage = 1;
+        let favoritesPage = 1;
+        const itemsPerPage = 10;
+        let allDishesLoaded = false;
+        let allFavoritesLoaded = false;
+        let currentCategoryFilter = 'all';
+        
+        // DOM元素
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const sections = document.querySelectorAll('.section');
+        const dishesList = document.getElementById('dishes-list');
+        const favoritesList = document.getElementById('favorites-list');
+        const historyList = document.getElementById('history-list');
+        const menuList = document.getElementById('menu-list');
+        const categoryFilter = document.getElementById('category-filter');
+        const randomCategory = document.getElementById('random-category');
+        const dishCategory = document.getElementById('dish-category');
+        const categoryModal = document.getElementById('category-modal');
+        const dishModal = document.getElementById('dish-modal');
+        const categoriesList = document.getElementById('categories-list');
+        const alertContainer = document.getElementById('alert-container');
+        const dishesScrollContainer = document.getElementById('dishes-scroll-container');
+        const favoritesScrollContainer = document.getElementById('favorites-scroll-container');
+        const dishesLoadMore = document.getElementById('dishes-load-more');
+        const favoritesLoadMore = document.getElementById('favorites-load-more');
+        const dishesAllLoaded = document.getElementById('dishes-all-loaded');
+        const favoritesAllLoaded = document.getElementById('favorites-all-loaded');
+        
+        // 显示提示信息
+        function showAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <span>${message}</span>
+                <button class="alert-close">&times;</button>
+            `;
+            
+            alertContainer.appendChild(alert);
+            
+            // 添加关闭事件
+            alert.querySelector('.alert-close').addEventListener('click', () => {
+                alert.remove();
+            });
+            
+            // 5秒后自动关闭
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+        
+        // 初始化应用
+        async function initApp() {
+            showLoading(dishesList);
+            showLoading(favoritesList);
+            showLoading(historyList);
+            showLoading(menuList);
+            
+            // 检查Supabase连接
+            try {
+                const { error } = await supabase.from('dishes').select('count').limit(1);
+                if (error) throw error;
+            } catch (error) {
+                showAlert('无法连接到Supabase，请检查配置: ' + error.message);
+                console.error('Supabase连接错误:', error);
+                return;
+            }
+            
+            // 从Supabase加载数据
+            await Promise.all([
+                loadCategories(),
+                loadMenuHistory()
+            ]);
+            
+            // 渲染分类选项
+            renderCategoryOptions();
+            
+            // 初始加载菜品和收藏
+            await loadMoreDishes();
+            await loadMoreFavorites();
+            
+            // 渲染历史记录
+            renderHistoryList();
+            
+            // 渲染今日菜单
+            renderMenuList();
+            
+            // 设置事件监听器
+            setupEventListeners();
+        }
+        
+        // 显示加载状态
+        function showLoading(container) {
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            `;
+        }
+        
+        // 从Supabase加载菜品数据（分页）
+        async function loadDishes(page, category = 'all', pageSize = itemsPerPage) {
+            try {
+                let query = supabase
+                    .from('dishes')
+                    .select('*')
+                    .order('name');
+                
+                if (category !== 'all') {
+                    query = query.eq('category', category);
+                }
+                
+                const from = (page - 1) * pageSize;
+                const to = from + pageSize - 1;
+                
+                const { data, error } = await query.range(from, to);
+                
+                if (error) throw error;
+                
+                return data || [];
+            } catch (error) {
+                console.error('Error loading dishes:', error);
+                showAlert('加载菜品数据失败: ' + error.message);
+                return [];
+            }
+        }
+        
+        // 加载更多菜品
+        async function loadMoreDishes() {
+            dishesLoadMore.style.display = 'none';
+            showLoading(dishesList);
+            
+            const newDishes = await loadDishes(dishesPage, currentCategoryFilter);
+            
+            if (newDishes.length === 0) {
+                allDishesLoaded = true;
+                if (dishesPage === 1) {
+                    dishesList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-utensils"></i>
+                            <p>暂无菜品</p>
+                            <p>点击右下角+按钮添加菜品</p>
+                        </div>
+                    `;
+                } else {
+                    dishesAllLoaded.style.display = 'block';
+                }
+                return;
+            }
+            
+            if (dishesPage === 1) {
+                dishes = newDishes;
+            } else {
+                dishes = [...dishes, ...newDishes];
+            }
+            
+            renderDishesList();
+            
+            // 显示加载更多按钮或全部加载完成提示
+            if (newDishes.length === itemsPerPage) {
+                dishesLoadMore.style.display = 'block';
+            } else {
+                allDishesLoaded = true;
+                dishesAllLoaded.style.display = 'block';
+            }
+            
+            dishesPage++;
+        }
+        
+        // 加载更多收藏菜品
+        async function loadMoreFavorites() {
+            favoritesLoadMore.style.display = 'none';
+            showLoading(favoritesList);
+            
+            const from = (favoritesPage - 1) * itemsPerPage;
+            const to = from + itemsPerPage - 1;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('dishes')
+                    .select('*')
+                    .eq('is_favorite', true)
+                    .order('name')
+                    .range(from, to);
+                
+                if (error) throw error;
+                
+                const newFavorites = data || [];
+                
+                if (newFavorites.length === 0) {
+                    allFavoritesLoaded = true;
+                    if (favoritesPage === 1) {
+                        document.getElementById('empty-favorites').style.display = 'block';
+                    } else {
+                        favoritesAllLoaded.style.display = 'block';
+                    }
+                    return;
+                }
+                
+                // 更新收藏列表
+                if (favoritesPage === 1) {
+                    // 第一页，直接替换
+                    document.getElementById('empty-favorites').style.display = 'none';
+                    renderFavoritesList(newFavorites);
+                } else {
+                    // 追加新数据
+                    const currentFavorites = Array.from(favoritesList.children).map(el => {
+                        return {
+                            id: parseInt(el.querySelector('[data-action]').getAttribute('data-id')),
+                            name: el.querySelector('.dish-name').textContent,
+                            category: el.querySelector('.dish-category').textContent,
+                            rating: el.querySelector('.dish-rating').textContent.length,
+                            image: el.querySelector('.dish-image').src,
+                            is_favorite: true,
+                            in_menu: el.querySelector('[data-action="menu"]').classList.contains('active')
+                        };
+                    });
+                    
+                    const combinedFavorites = [...currentFavorites, ...newFavorites];
+                    renderFavoritesList(combinedFavorites);
+                }
+                
+                // 显示加载更多按钮或全部加载完成提示
+                if (newFavorites.length === itemsPerPage) {
+                    favoritesLoadMore.style.display = 'block';
+                } else {
+                    allFavoritesLoaded = true;
+                    favoritesAllLoaded.style.display = 'block';
+                }
+                
+                favoritesPage++;
+            } catch (error) {
+                console.error('Error loading favorites:', error);
+                showAlert('加载收藏数据失败: ' + error.message);
+            }
+        }
+        
+        // 从Supabase加载分类数据
+        async function loadCategories() {
+            try {
+                const { data, error } = await supabase
+                    .from('categories')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                categories = data.map(c => c.name) || [];
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                showAlert('加载分类数据失败: ' + error.message);
+            }
+        }
+        
+        // 从Supabase加载菜单历史数据
+        async function loadMenuHistory() {
+            try {
+                const { data, error } = await supabase
+                    .from('menu_history')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                menuHistory = data || [];
+            } catch (error) {
+                console.error('Error loading menu history:', error);
+                showAlert('加载菜单历史失败: ' + error.message);
+            }
+        }
+        
+        // 保存菜品到Supabase
+        async function saveDish(dish) {
+            try {
+                let result;
+                
+                if (dish.id) {
+                    // 更新现有菜品
+                    result = await supabase
+                        .from('dishes')
+                        .update(dish)
+                        .eq('id', dish.id);
+                } else {
+                    // 添加新菜品
+                    result = await supabase
+                        .from('dishes')
+                        .insert([dish]);
+                }
+                
+                if (result.error) throw result.error;
+                
+                // 重新加载菜品数据
+                resetDishesPagination();
+                await loadMoreDishes();
+                
+                // 重新加载收藏数据
+                resetFavoritesPagination();
+                await loadMoreFavorites();
+                
+                showAlert('菜品保存成功!', 'success');
+                return true;
+            } catch (error) {
+                console.error('Error saving dish:', error);
+                showAlert('保存菜品失败: ' + error.message);
+                return false;
+            }
+        }
+        
+        // 重置菜品分页
+        function resetDishesPagination() {
+            dishesPage = 1;
+            allDishesLoaded = false;
+            dishesAllLoaded.style.display = 'none';
+        }
+        
+        // 重置收藏分页
+        function resetFavoritesPagination() {
+            favoritesPage = 1;
+            allFavoritesLoaded = false;
+            favoritesAllLoaded.style.display = 'none';
+        }
+        
+        // 删除菜品
+        async function deleteDish(id) {
+            try {
+                const { error } = await supabase
+                    .from('dishes')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                // 重新加载菜品数据
+                resetDishesPagination();
+                await loadMoreDishes();
+                
+                // 重新加载收藏数据
+                resetFavoritesPagination();
+                await loadMoreFavorites();
+                
+                showAlert('菜品删除成功!', 'success');
+                return true;
+            } catch (error) {
+                console.error('Error deleting dish:', error);
+                showAlert('删除菜品失败: ' + error.message);
+                return false;
+            }
+        }
+        
+        // 添加分类到Supabase
+        async function addCategoryToSupabase(category) {
+            try {
+                const { error } = await supabase
+                    .from('categories')
+                    .insert([{ name: category }]);
+                
+                if (error) throw error;
+                
+                // 重新加载分类数据
+                await loadCategories();
+                renderCategoryOptions();
+                showAlert('分类添加成功!', 'success');
+                return true;
+            } catch (error) {
+                console.error('Error adding category:', error);
+                showAlert('添加分类失败: ' + error.message);
+                return false;
+            }
+        }
+        
+        // 从Supabase删除分类
+        async function deleteCategoryFromSupabase(category) {
+            try {
+                const { error } = await supabase
+                    .from('categories')
+                    .delete()
+                    .eq('name', category);
+                
+                if (error) throw error;
+                
+                // 重新加载分类数据
+                await loadCategories();
+                renderCategoryOptions();
+                showAlert('分类删除成功!', 'success');
+                return true;
+            } catch (error) {
+                console.error('Error deleting category:', error);
+                showAlert('删除分类失败: ' + error.message);
+                return false;
+            }
+        }
+        
+        // 保存菜单历史到Supabase
+        async function saveMenuHistoryToSupabase(history) {
+            try {
+                const { error } = await supabase
+                    .from('menu_history')
+                    .insert([history]);
+                
+                if (error) throw error;
+                
+                // 重新加载菜单历史数据
+                await loadMenuHistory();
+                renderHistoryList();
+                showAlert('菜单保存成功!', 'success');
+                return true;
+            } catch (error) {
+                console.error('Error saving menu history:', error);
+                showAlert('保存菜单历史失败: ' + error.message);
+                return false;
+            }
+        }
+        
+        // 渲染分类选项
+        function renderCategoryOptions() {
+            // 清空现有选项
+            categoryFilter.innerHTML = '<option value="all">全部分类</option>';
+            randomCategory.innerHTML = '<option value="all">全部菜品</option>';
+            dishCategory.innerHTML = '';
+            
+            // 添加分类选项
+            categories.forEach(category => {
+                categoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
+                randomCategory.innerHTML += `<option value="${category}">${category}</option>`;
+                dishCategory.innerHTML += `<option value="${category}">${category}</option>`;
+            });
+        }
+        
+        // 渲染菜品列表
+        function renderDishesList() {
+            dishesList.innerHTML = '';
+            
+            if (dishes.length === 0) {
+                dishesList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-utensils"></i>
+                        <p>暂无菜品</p>
+                        <p>点击右下角+按钮添加菜品</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            dishes.forEach(dish => {
+                const dishElement = document.createElement('div');
+                dishElement.className = 'card';
+                dishElement.innerHTML = `
+                    <div class="dish-item">
+                        <img src="${dish.image}" alt="${dish.name}" class="dish-image" onerror="this.src='https://via.placeholder.com/100x100/E9ECEF/6C757D?text=暂无图片'">
+                        <div class="dish-info">
+                            <div class="dish-name">${dish.name}</div>
+                            <div class="dish-category">${dish.category}</div>
+                            <div class="dish-rating">${'★'.repeat(dish.rating)}${'☆'.repeat(5-dish.rating)}</div>
+                        </div>
+                        <div class="dish-actions">
+                            <button class="btn-icon ${dish.is_favorite ? 'active' : ''}" data-action="favorite" data-id="${dish.id}">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                            <button class="btn-icon ${dish.in_menu ? 'active' : ''}" data-action="menu" data-id="${dish.id}">
+                                <i class="fas fa-list"></i>
+                            </button>
+                            <button class="btn-icon" data-action="edit" data-id="${dish.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon" data-action="delete" data-id="${dish.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                dishesList.appendChild(dishElement);
+            });
+        }
+        
+        // 渲染收藏列表
+        function renderFavoritesList(favorites = []) {
+            favoritesList.innerHTML = '';
+            
+            if (favorites.length === 0 && favoritesPage === 1) {
+                document.getElementById('empty-favorites').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('empty-favorites').style.display = 'none';
+            
+            favorites.forEach(dish => {
+                const dishElement = document.createElement('div');
+                dishElement.className = 'card';
+                dishElement.innerHTML = `
+                    <div class="dish-item">
+                        <img src="${dish.image}" alt="${dish.name}" class="dish-image" onerror="this.src='https://via.placeholder.com/100x100/E9ECEF/6C757D?text=暂无图片'">
+                        <div class="dish-info">
+                            <div class="dish-name">${dish.name}</div>
+                            <div class="dish-category">${dish.category}</div>
+                            <div class="dish-rating">${'★'.repeat(dish.rating)}${'☆'.repeat(5-dish.rating)}</div>
+                        </div>
+                        <div class="dish-actions">
+                            <button class="btn-icon ${dish.in_menu ? 'active' : ''}" data-action="menu" data-id="${dish.id}">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                favoritesList.appendChild(dishElement);
+            });
+        }
+        
+        // 渲染历史记录
+        function renderHistoryList() {
+            historyList.innerHTML = '';
+            
+            if (menuHistory.length === 0) {
+                document.getElementById('empty-history').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('empty-history').style.display = 'none';
+            
+            menuHistory.forEach(history => {
+                const historyElement = document.createElement('div');
+                historyElement.className = 'card';
+                
+                let dishesHtml = '';
+                history.dishes.forEach(dishName => {
+                    dishesHtml += `<div class="menu-item">${dishName}</div>`;
+                });
+                
+                historyElement.innerHTML = `
+                    <div class="card-header">
+                        ${new Date(history.created_at).toLocaleDateString()}
+                    </div>
+                    <div class="card-body">
+                        <div class="menu-list">
+                            ${dishesHtml}
+                        </div>
+                    </div>
+                `;
+                
+                historyList.appendChild(historyElement);
+            });
+        }
+        
+        // 渲染今日菜单
+        function renderMenuList() {
+            menuList.innerHTML = '';
+            const menuDishes = dishes.filter(dish => dish.in_menu);
+            
+            if (menuDishes.length === 0) {
+                document.getElementById('empty-menu').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('empty-menu').style.display = 'none';
+            
+            menuDishes.forEach(dish => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item';
+                menuItem.innerHTML = `
+                    <img src="${dish.image}" alt="${dish.name}" onerror="this.src='https://via.placeholder.com/100x100/E9ECEF/6C757D?text=暂无图片'">
+                    <span>${dish.name}</span>
+                    <button class="btn-icon" data-action="remove-from-menu" data-id="${dish.id}" style="margin-left: auto;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                menuList.appendChild(menuItem);
+            });
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 导航标签切换
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.getAttribute('data-target');
+                    
+                    navTabs.forEach(t => t.classList.remove('active'));
+                    sections.forEach(s => s.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(target).classList.add('active');
+                });
+            });
+            
+            // 分类筛选
+            categoryFilter.addEventListener('change', async () => {
+                currentCategoryFilter = categoryFilter.value;
+                resetDishesPagination();
+                await loadMoreDishes();
+            });
+            
+            // 随机选择按钮
+            document.getElementById('random-btn').addEventListener('click', () => {
+                const category = randomCategory.value;
+                const filteredDishes = category === 'all' 
+                    ? dishes 
+                    : dishes.filter(dish => dish.category === category);
+                
+                if (filteredDishes.length === 0) {
+                    showAlert('该分类下没有菜品！');
+                    return;
+                }
+                
+                const randomIndex = Math.floor(Math.random() * filteredDishes.length);
+                const randomDish = filteredDishes[randomIndex];
+                
+                document.getElementById('random-result').style.display = 'block';
+                document.querySelector('.random-dish').textContent = randomDish.name;
+                
+                // 设置再选一次和加入菜单按钮
+                document.getElementById('random-again').onclick = () => {
+                    document.getElementById('random-btn').click();
+                };
+                
+                document.getElementById('add-to-menu-random').onclick = () => {
+                    toggleDishInMenu(randomDish.id);
+                    showAlert(`已将"${randomDish.name}"加入今日菜单！`, 'success');
+                };
+            });
+            
+            // 添加菜品按钮
+            document.getElementById('add-dish-btn').addEventListener('click', () => {
+                document.getElementById('modal-title').textContent = '添加菜品';
+                document.getElementById('dish-form').reset();
+                document.querySelectorAll('#dish-rating .star').forEach(star => {
+                    star.classList.remove('active');
+                });
+                document.getElementById('dish-id').value = '';
+                dishModal.style.display = 'flex';
+            });
+            
+            // 管理分类按钮
+            document.getElementById('add-category-btn').addEventListener('click', () => {
+                renderCategoriesList();
+                categoryModal.style.display = 'flex';
+            });
+            
+            // 保存菜单按钮
+            document.getElementById('save-menu-btn').addEventListener('click', async () => {
+                const menuDishes = dishes.filter(dish => dish.in_menu);
+                
+                if (menuDishes.length === 0) {
+                    showAlert('今日菜单为空，无法保存！');
+                    return;
+                }
+                
+                const dishNames = menuDishes.map(dish => dish.name);
+                
+                const success = await saveMenuHistoryToSupabase({
+                    date: new Date().toISOString().split('T')[0],
+                    dishes: dishNames
+                });
+                
+                if (success) {
+                    // 清空今日菜单
+                    for (const dish of menuDishes) {
+                        await toggleDishInMenu(dish.id, false);
+                    }
+                }
+            });
+            
+            // 模态框关闭按钮
+            document.querySelectorAll('.modal-close, #modal-cancel, #category-modal-close').forEach(button => {
+                button.addEventListener('click', () => {
+                    dishModal.style.display = 'none';
+                    categoryModal.style.display = 'none';
+                });
+            });
+            
+            // 评分星星点击事件
+            document.querySelectorAll('#dish-rating .star').forEach(star => {
+                star.addEventListener('click', () => {
+                    const value = parseInt(star.getAttribute('data-value'));
+                    const stars = document.querySelectorAll('#dish-rating .star');
+                    
+                    stars.forEach((s, index) => {
+                        if (index < value) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                });
+            });
+            
+            // 保存菜品表单
+            document.getElementById('modal-save').addEventListener('click', async () => {
+                const name = document.getElementById('dish-name').value;
+                const image = document.getElementById('dish-image').value;
+                const category = document.getElementById('dish-category').value;
+                const steps = document.getElementById('dish-steps').value;
+                const id = document.getElementById('dish-id').value;
+                
+                // 获取评分
+                let rating = 0;
+                document.querySelectorAll('#dish-rating .star').forEach(star => {
+                    if (star.classList.contains('active')) {
+                        rating++;
+                    }
+                });
+                
+                if (!name || !category || rating === 0) {
+                    showAlert('请填写必填字段！');
+                    return;
+                }
+                
+                const dishData = {
+                    name,
+                    image: image || 'https://via.placeholder.com/100x100/E9ECEF/6C757D?text=暂无图片',
+                    category,
+                    rating,
+                    steps,
+                    is_favorite: false,
+                    in_menu: false
+                };
+                
+                if (id) {
+                    dishData.id = parseInt(id);
+                }
+                
+                const success = await saveDish(dishData);
+                
+                if (success) {
+                    dishModal.style.display = 'none';
+                }
+            });
+            
+            // 添加分类
+            document.getElementById('add-category').addEventListener('click', async () => {
+                const newCategory = document.getElementById('new-category').value.trim();
+                
+                if (!newCategory) {
+                    showAlert('请输入分类名称！');
+                    return;
+                }
+                
+                if (categories.includes(newCategory)) {
+                    showAlert('该分类已存在！');
+                    return;
+                }
+                
+                const success = await addCategoryToSupabase(newCategory);
+                
+                if (success) {
+                    renderCategoryOptions();
+                    renderCategoriesList();
+                    document.getElementById('new-category').value = '';
+                }
+            });
+            
+            // 菜品操作事件委托
+            dishesList.addEventListener('click', handleDishAction);
+            favoritesList.addEventListener('click', handleDishAction);
+            menuList.addEventListener('click', handleDishAction);
+            
+            // 加载更多按钮
+            document.getElementById('load-more-dishes').addEventListener('click', loadMoreDishes);
+            document.getElementById('load-more-favorites').addEventListener('click', loadMoreFavorites);
+            
+            // 滚动加载更多
+            dishesScrollContainer.addEventListener('scroll', () => {
+                if (dishesScrollContainer.scrollTop + dishesScrollContainer.clientHeight >= dishesScrollContainer.scrollHeight - 10) {
+                    if (!allDishesLoaded) {
+                        loadMoreDishes();
+                    }
+                }
+            });
+            
+            favoritesScrollContainer.addEventListener('scroll', () => {
+                if (favoritesScrollContainer.scrollTop + favoritesScrollContainer.clientHeight >= favoritesScrollContainer.scrollHeight - 10) {
+                    if (!allFavoritesLoaded) {
+                        loadMoreFavorites();
+                    }
+                }
+            });
+        }
+        
+        // 处理菜品操作
+        async function handleDishAction(e) {
+            const button = e.target.closest('button');
+            if (!button) return;
+            
+            const action = button.getAttribute('data-action');
+            const id = parseInt(button.getAttribute('data-id'));
+            
+            if (!action || !id) return;
+            
+            if (action === 'favorite') {
+                await toggleDishFavorite(id);
+            } else if (action === 'menu') {
+                await toggleDishInMenu(id);
+            } else if (action === 'edit') {
+                editDish(id);
+            } else if (action === 'delete') {
+                if (confirm('确定要删除这个菜品吗？')) {
+                    await deleteDish(id);
+                }
+            } else if (action === 'remove-from-menu') {
+                await toggleDishInMenu(id);
+            }
+        }
+        
+        // 切换菜品收藏状态
+        async function toggleDishFavorite(id) {
+            const dish = dishes.find(d => d.id === id);
+            if (!dish) return;
+            
+            const updatedDish = {
+                ...dish,
+                is_favorite: !dish.is_favorite
+            };
+            
+            const success = await saveDish(updatedDish);
+            
+            if (success) {
+                // 重新加载收藏列表
+                resetFavoritesPagination();
+                await loadMoreFavorites();
+            }
+        }
+        
+        // 切换菜品在菜单中的状态
+        async function toggleDishInMenu(id, showAlert = true) {
+            const dish = dishes.find(d => d.id === id);
+            if (!dish) return;
+            
+            const updatedDish = {
+                ...dish,
+                in_menu: !dish.in_menu
+            };
+            
+            const success = await saveDish(updatedDish);
+            
+            if (success) {
+                renderMenuList();
+                
+                if (showAlert) {
+                    const message = updatedDish.in_menu ? 
+                        `已将"${dish.name}"加入今日菜单！` : 
+                        `已将"${dish.name}"从今日菜单移除！`;
+                    showAlert(message, 'success');
+                }
+            }
+        }
+        
+        // 编辑菜品
+        function editDish(id) {
+            const dish = dishes.find(d => d.id === id);
+            if (!dish) return;
+            
+            document.getElementById('modal-title').textContent = '编辑菜品';
+            document.getElementById('dish-id').value = dish.id;
+            document.getElementById('dish-name').value = dish.name;
+            document.getElementById('dish-image').value = dish.image;
+            document.getElementById('dish-category').value = dish.category;
+            document.getElementById('dish-steps').value = dish.steps || '';
+            
+            // 设置评分
+            document.querySelectorAll('#dish-rating .star').forEach((star, index) => {
+                if (index < dish.rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            
+            dishModal.style.display = 'flex';
+        }
+        
+        // 渲染分类列表
+        function renderCategoriesList() {
+            categoriesList.innerHTML = '';
+            
+            categories.forEach((category, index) => {
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'dish-item';
+                categoryElement.innerHTML = `
+                    <div class="dish-info">
+                        <div class="dish-name">${category}</div>
+                    </div>
+                    <button class="btn-icon" data-action="delete-category" data-category="${category}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                categoriesList.appendChild(categoryElement);
+            });
+            
+            // 添加删除分类事件
+            categoriesList.addEventListener('click', async e => {
+                const button = e.target.closest('button');
+                if (!button) return;
+                
+                const action = button.getAttribute('data-action');
+                const category = button.getAttribute('data-category');
+                
+                if (action === 'delete-category' && category) {
+                    // 检查是否有菜品使用该分类
+                    const dishesWithCategory = dishes.filter(dish => dish.category === category);
+                    
+                    if (dishesWithCategory.length > 0) {
+                        showAlert('该分类下有菜品，无法删除！');
+                        return;
+                    }
+                    
+                    const success = await deleteCategoryFromSupabase(category);
+                    
+                    if (success) {
+                        renderCategoryOptions();
+                        renderCategoriesList();
+                    }
+                }
+            });
+        }
+        
+        // 初始化应用
+        initApp();
+    </script>
+</body>
+</html>
