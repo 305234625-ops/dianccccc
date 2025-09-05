@@ -460,6 +460,7 @@
              bottom: 0;
              left: 0;
              right: 0;
+            z-index: 1000;
         }
         
         @keyframes spin {
@@ -488,28 +489,7 @@
     
     <div id="alert-container" style="position: fixed; top: 80px; left: 0; right: 0; z-index: 1000; padding: 0 15px;"></div>
     
-    <div class="nav-tabs dhl">
-        <div class="nav-tab active" data-target="dishes-section">
-            <i class="fas fa-list"></i>
-            <span>菜品列表</span>
-        </div>
-        <div class="nav-tab" data-target="menu-section">
-            <i class="fas fa-utensils"></i>
-            <span>今日菜单</span>
-        </div>
-        <div class="nav-tab" data-target="random-section">
-            <i class="fas fa-random"></i>
-            <span>随机选择</span>
-        </div>
-        <div class="nav-tab" data-target="favorites-section">
-            <i class="fas fa-heart"></i>
-            <span>收藏</span>
-        </div>
-        <div class="nav-tab" data-target="history-section">
-            <i class="fas fa-history"></i>
-            <span>历史</span>
-        </div>
-    </div>
+    
     
     <div class="container">
         <!-- 今日菜单部分 -->
@@ -687,8 +667,32 @@
                 <button class="btn btn-light" id="category-modal-close">完成</button>
             </div>
         </div>
+        
     </div>
 
+    <div class="nav-tabs dhl">
+        <div class="nav-tab active" data-target="dishes-section">
+            <i class="fas fa-list"></i>
+            <span>菜品列表</span>
+        </div>
+        <div class="nav-tab" data-target="menu-section">
+            <i class="fas fa-utensils"></i>
+            <span>今日菜单</span>
+        </div>
+        <div class="nav-tab" data-target="random-section">
+            <i class="fas fa-random"></i>
+            <span>随机选择</span>
+        </div>
+        <div class="nav-tab" data-target="favorites-section">
+            <i class="fas fa-heart"></i>
+            <span>收藏</span>
+        </div>
+        <div class="nav-tab" data-target="history-section">
+            <i class="fas fa-history"></i>
+            <span>历史</span>
+        </div>
+    </div>
+    
     <script>
         // Supabase初始化 - 请替换为您的实际URL和密钥
         const supabaseUrl = 'https://uqlfjzfesezbdyjeazbd.supabase.co';
