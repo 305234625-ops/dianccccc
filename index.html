@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>点菜助手</title>
+    <title>吃点啥</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -455,6 +455,12 @@
             max-height: 60vh;
             overflow-y: auto;
         }
+        .dhl{
+             position: fixed;
+             bottom: 0;
+             left: 0;
+             right: 0;
+        }
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -475,21 +481,21 @@
 <body>
     <header>
         <div class="container">
-            <h1>点菜助手</h1>
+            <h1>吃啥子嘛</h1>
             <p>吃点啥？</p>
         </div>
     </header>
     
     <div id="alert-container" style="position: fixed; top: 80px; left: 0; right: 0; z-index: 1000; padding: 0 15px;"></div>
     
-    <div class="nav-tabs">
+    <div class="nav-tabs dhl">
+        <div class="nav-tab active" data-target="dishes-section">
+            <i class="fas fa-list"></i>
+            <span>菜品列表</span>
+        </div>
         <div class="nav-tab active" data-target="menu-section">
             <i class="fas fa-utensils"></i>
             <span>今日菜单</span>
-        </div>
-        <div class="nav-tab" data-target="dishes-section">
-            <i class="fas fa-list"></i>
-            <span>菜品列表</span>
         </div>
         <div class="nav-tab" data-target="random-section">
             <i class="fas fa-random"></i>
