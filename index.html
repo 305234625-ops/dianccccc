@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>吃点啥</title>
+    <title>吃啥子</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -52,7 +52,7 @@
         }
         
         .nav-tabs {
-            position: fixed;
+             position: fixed;
              bottom: 0;
             left: 0;
             right: 0;
@@ -61,8 +61,7 @@
             background-color: white;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             z-index: 888;
-           
-        
+
         }
         
         .nav-tab {
@@ -305,6 +304,32 @@
             min-width: 120px;
         }
         
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 20px;
+            font-size: 1rem;
+        }
+        
+        .search-btn {
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+        }
+        
         .floating-btn {
             position: fixed;
             bottom: 50px;
@@ -332,7 +357,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            z-index: 1000;
             justify-content: center;
             align-items: center;
         }
@@ -423,9 +448,9 @@
         }
         
         .alert-success {
-            background-color: 'e8f5e9';
-            color: '#2e7d32';
-            border: 1px solid '#a5d6a7';
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
         }
         
         .alert-close {
@@ -456,7 +481,7 @@
         }
         
         .scroll-container {
-            max-height: 65vh;
+            max-height: 60vh;
             overflow-y: auto;
         }
         
@@ -473,20 +498,49 @@
             .nav-tab i {
                 margin-bottom: 0;
             }
+            
+            .filter-bar {
+                flex-direction: column;
+            }
+            
+            .search-bar {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>吃啥子嘛</h1>
-            <p>吃点啥？</p>
+            <h1>点菜助手 - Supabase版</h1>
+            <p>解决"不知道吃什么"的困扰</p>
         </div>
     </header>
     
-    <div id="alert-container" style="position: fixed; top: 80px; left: 0; right: 0; z-index: 888; padding: 0 15px;"></div>
+    <div id="alert-container" style="position: fixed; top: 80px; left: 0; right: 0; z-index: 1000; padding: 0 15px;"></div>
     
-    
+    <div class="nav-tabs">
+        <div class="nav-tab active" data-target="menu-section">
+            <i class="fas fa-utensils"></i>
+            <span>今日菜单</span>
+        </div>
+        <div class="nav-tab" data-target="dishes-section">
+            <i class="fas fa-list"></i>
+            <span>菜品列表</span>
+        </div>
+        <div class="nav-tab" data-target="random-section">
+            <i class="fas fa-random"></i>
+            <span>随机选择</span>
+        </div>
+        <div class="nav-tab" data-target="favorites-section">
+            <i class="fas fa-heart"></i>
+            <span>收藏</span>
+        </div>
+        <div class="nav-tab" data-target="history-section">
+            <i class="fas fa-history"></i>
+            <span>历史</span>
+        </div>
+    </div>
     
     <div class="container">
         <!-- 今日菜单部分 -->
@@ -517,6 +571,13 @@
                     <!-- 分类选项将通过JS动态添加 -->
                 </select>
                 <button class="btn btn-light" id="add-category-btn">管理分类</button>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="search-input" class="search-input" placeholder="搜索菜品...">
+                <button class="search-btn" id="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
             </div>
             
             <div class="scroll-container" id="dishes-scroll-container">
@@ -559,6 +620,13 @@
         
         <!-- 收藏部分 -->
         <div id="favorites-section" class="section">
+            <div class="search-bar">
+                <input type="text" id="favorites-search-input" class="search-input" placeholder="搜索收藏菜品...">
+                <button class="search-btn" id="favorites-search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
             <div class="scroll-container" id="favorites-scroll-container">
                 <div id="favorites-list">
                     <!-- 收藏的菜品将通过JS动态添加 -->
@@ -664,32 +732,8 @@
                 <button class="btn btn-light" id="category-modal-close">完成</button>
             </div>
         </div>
-        
     </div>
 
-    <div class="nav-tabs dhl">
-        <div class="nav-tab active" data-target="dishes-section">
-            <i class="fas fa-list"></i>
-            <span>菜品列表</span>
-        </div>
-        <div class="nav-tab" data-target="menu-section">
-            <i class="fas fa-utensils"></i>
-            <span>今日菜单</span>
-        </div>
-        <div class="nav-tab" data-target="random-section">
-            <i class="fas fa-random"></i>
-            <span>随机选择</span>
-        </div>
-        <div class="nav-tab" data-target="favorites-section">
-            <i class="fas fa-heart"></i>
-            <span>收藏</span>
-        </div>
-        <div class="nav-tab" data-target="history-section">
-            <i class="fas fa-history"></i>
-            <span>历史</span>
-        </div>
-    </div>
-    
     <script>
         // Supabase初始化 - 请替换为您的实际URL和密钥
         const supabaseUrl = 'https://uqlfjzfesezbdyjeazbd.supabase.co';
@@ -709,6 +753,8 @@
         let allDishesLoaded = false;
         let allFavoritesLoaded = false;
         let currentCategoryFilter = 'all';
+        let currentSearchQuery = '';
+        let currentFavoritesSearchQuery = '';
         
         // DOM元素
         const navTabs = document.querySelectorAll('.nav-tab');
@@ -730,6 +776,10 @@
         const favoritesLoadMore = document.getElementById('favorites-load-more');
         const dishesAllLoaded = document.getElementById('dishes-all-loaded');
         const favoritesAllLoaded = document.getElementById('favorites-all-loaded');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const favoritesSearchInput = document.getElementById('favorites-search-input');
+        const favoritesSearchBtn = document.getElementById('favorites-search-btn');
         
         // 显示提示信息
         function showAlert(message, type = 'error') {
@@ -752,7 +802,7 @@
                 if (alert.parentNode) {
                     alert.remove();
                 }
-            }, 500);
+            }, 5000);
         }
         
         // 初始化应用
@@ -805,7 +855,7 @@
         }
         
         // 从Supabase加载菜品数据（分页）
-        async function loadDishes(page, category = 'all', pageSize = itemsPerPage) {
+        async function loadDishes(page, category = 'all', searchQuery = '', pageSize = itemsPerPage) {
             try {
                 let query = supabase
                     .from('dishes')
@@ -814,6 +864,10 @@
                 
                 if (category !== 'all') {
                     query = query.eq('category', category);
+                }
+                
+                if (searchQuery) {
+                    query = query.ilike('name', `%${searchQuery}%`);
                 }
                 
                 const from = (page - 1) * pageSize;
@@ -836,7 +890,7 @@
             dishesLoadMore.style.display = 'none';
             showLoading(dishesList);
             
-            const newDishes = await loadDishes(dishesPage, currentCategoryFilter);
+            const newDishes = await loadDishes(dishesPage, currentCategoryFilter, currentSearchQuery);
             
             if (newDishes.length === 0) {
                 allDishesLoaded = true;
@@ -854,10 +908,14 @@
                 return;
             }
             
+            // 检查是否有重复菜品
+            const existingIds = dishes.map(d => d.id);
+            const uniqueNewDishes = newDishes.filter(dish => !existingIds.includes(dish.id));
+            
             if (dishesPage === 1) {
-                dishes = newDishes;
+                dishes = uniqueNewDishes;
             } else {
-                dishes = [...dishes, ...newDishes];
+                dishes = [...dishes, ...uniqueNewDishes];
             }
             
             renderDishesList();
@@ -874,17 +932,22 @@
         }
         
         // 从Supabase加载收藏菜品数据（分页）
-        async function loadFavorites(page, pageSize = itemsPerPage) {
+        async function loadFavorites(page, searchQuery = '', pageSize = itemsPerPage) {
             try {
-                const from = (page - 1) * pageSize;
-                const to = from + pageSize - 1;
-                
-                const { data, error } = await supabase
+                let query = supabase
                     .from('dishes')
                     .select('*')
                     .eq('is_favorite', true)
-                    .order('name')
-                    .range(from, to);
+                    .order('name');
+                
+                if (searchQuery) {
+                    query = query.ilike('name', `%${searchQuery}%`);
+                }
+                
+                const from = (page - 1) * pageSize;
+                const to = from + pageSize - 1;
+                
+                const { data, error } = await query.range(from, to);
                 
                 if (error) throw error;
                 
@@ -901,7 +964,7 @@
             favoritesLoadMore.style.display = 'none';
             showLoading(favoritesList);
             
-            const newFavorites = await loadFavorites(favoritesPage);
+            const newFavorites = await loadFavorites(favoritesPage, currentFavoritesSearchQuery);
             
             if (newFavorites.length === 0) {
                 allFavoritesLoaded = true;
@@ -914,10 +977,14 @@
                 return;
             }
             
+            // 检查是否有重复菜品
+            const existingIds = favorites.map(d => d.id);
+            const uniqueNewFavorites = newFavorites.filter(dish => !existingIds.includes(dish.id));
+            
             if (favoritesPage === 1) {
-                favorites = newFavorites;
+                favorites = uniqueNewFavorites;
             } else {
-                favorites = [...favorites, ...newFavorites];
+                favorites = [...favorites, ...uniqueNewFavorites];
             }
             
             renderFavoritesList();
@@ -970,6 +1037,19 @@
         // 保存菜品到Supabase
         async function saveDish(dish) {
             try {
+                // 检查菜品是否已存在（名称相同）
+                const { data: existingDishes, error: checkError } = await supabase
+                    .from('dishes')
+                    .select('*')
+                    .eq('name', dish.name);
+                
+                if (checkError) throw checkError;
+                
+                if (existingDishes.length > 0 && (!dish.id || existingDishes[0].id !== dish.id)) {
+                    showAlert('菜品名称已存在，请使用不同的名称！');
+                    return false;
+                }
+                
                 let result;
                 
                 if (dish.id) {
@@ -1196,6 +1276,9 @@
                             <button class="btn-icon ${dish.in_menu ? 'active' : ''}" data-action="menu" data-id="${dish.id}">
                                 <i class="fas fa-list"></i>
                             </button>
+                            <button class="btn-icon" data-action="remove-favorite" data-id="${dish.id}">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1284,6 +1367,36 @@
                 currentCategoryFilter = categoryFilter.value;
                 resetDishesPagination();
                 await loadMoreDishes();
+            });
+            
+            // 搜索功能
+            searchBtn.addEventListener('click', async () => {
+                currentSearchQuery = searchInput.value.trim();
+                resetDishesPagination();
+                await loadMoreDishes();
+            });
+            
+            searchInput.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    currentSearchQuery = searchInput.value.trim();
+                    resetDishesPagination();
+                    await loadMoreDishes();
+                }
+            });
+            
+            // 收藏搜索功能
+            favoritesSearchBtn.addEventListener('click', async () => {
+                currentFavoritesSearchQuery = favoritesSearchInput.value.trim();
+                resetFavoritesPagination();
+                await loadMoreFavorites();
+            });
+            
+            favoritesSearchInput.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    currentFavoritesSearchQuery = favoritesSearchInput.value.trim();
+                    resetFavoritesPagination();
+                    await loadMoreFavorites();
+                }
             });
             
             // 随机选择按钮
@@ -1494,6 +1607,8 @@
                 }
             } else if (action === 'remove-from-menu') {
                 await toggleDishInMenu(id);
+            } else if (action === 'remove-favorite') {
+                await toggleDishFavorite(id);
             }
         }
         
