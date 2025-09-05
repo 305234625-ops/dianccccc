@@ -419,9 +419,9 @@
         }
         
         .alert-success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #a5d6a7;
+            background-color: 'e8f5e9';
+            color: '#2e7d32';
+            border: 1px solid '#a5d6a7';
         }
         
         .alert-close {
@@ -476,7 +476,7 @@
     <header>
         <div class="container">
             <h1>点菜助手</h1>
-            <p>今天吃点啥</p>
+            <p>吃点啥？</p>
         </div>
     </header>
     
@@ -691,6 +691,7 @@
         
         // 全局数据
         let dishes = [];
+        let favorites = [];
         let categories = [];
         let menuHistory = [];
         
@@ -865,15 +866,12 @@
             dishesPage++;
         }
         
-        // 加载更多收藏菜品
-        async function loadMoreFavorites() {
-            favoritesLoadMore.style.display = 'none';
-            showLoading(favoritesList);
-            
-            const from = (favoritesPage - 1) * itemsPerPage;
-            const to = from + itemsPerPage - 1;
-            
+        // 从Supabase加载收藏菜品数据（分页）
+        async function loadFavorites(page, pageSize = itemsPerPage) {
             try {
+                const from = (page - 1) * pageSize;
+                const to = from + pageSize - 1;
+                
                 const { data, error } = await supabase
                     .from('dishes')
                     .select('*')
@@ -883,54 +881,49 @@
                 
                 if (error) throw error;
                 
-                const newFavorites = data || [];
-                
-                if (newFavorites.length === 0) {
-                    allFavoritesLoaded = true;
-                    if (favoritesPage === 1) {
-                        document.getElementById('empty-favorites').style.display = 'block';
-                    } else {
-                        favoritesAllLoaded.style.display = 'block';
-                    }
-                    return;
-                }
-                
-                // 更新收藏列表
-                if (favoritesPage === 1) {
-                    // 第一页，直接替换
-                    document.getElementById('empty-favorites').style.display = 'none';
-                    renderFavoritesList(newFavorites);
-                } else {
-                    // 追加新数据
-                    const currentFavorites = Array.from(favoritesList.children).map(el => {
-                        return {
-                            id: parseInt(el.querySelector('[data-action]').getAttribute('data-id')),
-                            name: el.querySelector('.dish-name').textContent,
-                            category: el.querySelector('.dish-category').textContent,
-                            rating: el.querySelector('.dish-rating').textContent.length,
-                            image: el.querySelector('.dish-image').src,
-                            is_favorite: true,
-                            in_menu: el.querySelector('[data-action="menu"]').classList.contains('active')
-                        };
-                    });
-                    
-                    const combinedFavorites = [...currentFavorites, ...newFavorites];
-                    renderFavoritesList(combinedFavorites);
-                }
-                
-                // 显示加载更多按钮或全部加载完成提示
-                if (newFavorites.length === itemsPerPage) {
-                    favoritesLoadMore.style.display = 'block';
-                } else {
-                    allFavoritesLoaded = true;
-                    favoritesAllLoaded.style.display = 'block';
-                }
-                
-                favoritesPage++;
+                return data || [];
             } catch (error) {
                 console.error('Error loading favorites:', error);
                 showAlert('加载收藏数据失败: ' + error.message);
+                return [];
             }
+        }
+        
+        // 加载更多收藏菜品
+        async function loadMoreFavorites() {
+            favoritesLoadMore.style.display = 'none';
+            showLoading(favoritesList);
+            
+            const newFavorites = await loadFavorites(favoritesPage);
+            
+            if (newFavorites.length === 0) {
+                allFavoritesLoaded = true;
+                if (favoritesPage === 1) {
+                    document.getElementById('empty-favorites').style.display = 'block';
+                    favoritesList.innerHTML = '';
+                } else {
+                    favoritesAllLoaded.style.display = 'block';
+                }
+                return;
+            }
+            
+            if (favoritesPage === 1) {
+                favorites = newFavorites;
+            } else {
+                favorites = [...favorites, ...newFavorites];
+            }
+            
+            renderFavoritesList();
+            
+            // 显示加载更多按钮或全部加载完成提示
+            if (newFavorites.length === itemsPerPage) {
+                favoritesLoadMore.style.display = 'block';
+            } else {
+                allFavoritesLoaded = true;
+                favoritesAllLoaded.style.display = 'block';
+            }
+            
+            favoritesPage++;
         }
         
         // 从Supabase加载分类数据
@@ -1171,10 +1164,10 @@
         }
         
         // 渲染收藏列表
-        function renderFavoritesList(favorites = []) {
+        function renderFavoritesList() {
             favoritesList.innerHTML = '';
             
-            if (favorites.length === 0 && favoritesPage === 1) {
+            if (favorites.length === 0) {
                 document.getElementById('empty-favorites').style.display = 'block';
                 return;
             }
