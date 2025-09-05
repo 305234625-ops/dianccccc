@@ -52,13 +52,16 @@
         }
         
         .nav-tabs {
-            display: flex;
-            justify-content: space-around;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
             background-color: white;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             position: sticky;
             top: 60px;
-            z-index: 99;
+        
         }
         
         .nav-tab {
@@ -454,13 +457,6 @@
         .scroll-container {
             max-height: 60vh;
             overflow-y: auto;
-        }
-        .dhl{
-             position: fixed;
-             bottom: 0;
-             left: 0;
-             right: 0;
-            z-index: 1000;
         }
         
         @keyframes spin {
